@@ -1,8 +1,7 @@
 from pydantic import (
         BaseModel,
         Field,
-        ValidationError,
-        model_validator
+        ValidationError
     )
 from enum import Enum
 import json
@@ -44,7 +43,7 @@ def load_function_definitions(path: str) -> list[Functiondefinition]:
     if not path or not os.path.exists(path):
         raise FileNotFoundError(f"{path} is not found")
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, 'r') as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         print(f"{path}: {e}")
@@ -65,7 +64,7 @@ def load_function_calling(path: str) -> list[Functioncalling]:
     if not path or not os.path.exists(path):
         raise FileNotFoundError(f"{path} is not found")
     try:
-        with open(path, 'r', encoding='utf-8') as f:
+        with open(path, 'r') as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
         print(f"{path}: {e}")
@@ -76,11 +75,12 @@ def load_function_calling(path: str) -> list[Functioncalling]:
             functions.append(Functioncalling(**entry))
         except ValidationError as e:
             print(f"{entry}\n{e}")
-    print(f"Total of funtions: {len(functions)}")
+    print(f"Total of prompts: {len(functions)}")
     for fn in functions:
         print(f"{fn.prompt}")
     return functions
 
 
 load_function_definitions("data/input/functions_definition.json")
+print()
 load_function_calling("data/input/function_calling_tests.json")
