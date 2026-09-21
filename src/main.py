@@ -1,13 +1,18 @@
 from llm_sdk import Small_LLM_Model
+from typing import Any
+from src import load_function_calling, load_function_definitions
+
 
 model = Small_LLM_Model()
 
 
 def encode_strings(strings: list[str]) -> None:
+    """Encode strings"""
     encoded = []
     for string in strings:
         encoded.append(model.encode(string).tolist()[0])
     return (encoded)
+
 
 def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[str, str]) -> str:
     result = []
@@ -21,7 +26,7 @@ Answer: """
     encoded_string = model.encode(base_prompt).tolist()[0]
     i = 0
     while True:
-        candidat = {func[i] for func in encoded_funcs if len(func) > i}
+        candidat = {func[i] for func in encoded_funcs if len(func) > i and func[:i] == result}
         if not candidat:
             return None
 
@@ -35,6 +40,8 @@ Answer: """
         if not candidat:
             return
         i += 1
+    return result
+
 
 def choose_func_name(prompt: str, funcs: list[str]) -> str:
     functions = {}
@@ -42,6 +49,11 @@ def choose_func_name(prompt: str, funcs: list[str]) -> str:
     for f in funcs:
         functions[f["name"]] = f["description"]
     return get_best_from(prompt, funcs_encode, functions)
+
+
+def choose_param(func_name: str) -> Any:
+    ...
+
 
 if __name__ == "__main__":
     function_name = {
@@ -51,7 +63,8 @@ if __name__ == "__main__":
         "fn_get_square_root": "Calculate the square root of a number",
         "fn_substitute_string_with_regex": "Transform a string using regex"
     }
-    prompt = "What is the sum of 1 and 2? The name of the function who can do this is"
+    prompt = "Greet shrek"
     encoded_string = (encode_strings(function_name))
     result = get_best_from(prompt, encoded_string, function_name)
     print(result)
+    print(model.decode(result))
