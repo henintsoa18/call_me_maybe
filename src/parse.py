@@ -4,6 +4,7 @@ from pydantic import (
         ValidationError
     )
 from enum import Enum
+from typing import Any
 import json
 import os
 
@@ -11,13 +12,17 @@ import os
 class Parameterstype(Enum):
     Number = "number"
     String = "string"
-    Non = "None"
+    Integer = "integer"
+    Boolean = "boolean"
+    Null = "None"
 
 
 class Returntype(Enum):
     Number = "number"
     String = "string"
-    Non = "None"
+    Integer = "integer"
+    Boolean = "boolean"
+    Null = "None"
 
 
 class ParameterSpec(BaseModel):
@@ -40,48 +45,44 @@ class Functioncalling(BaseModel):
 
 
 def load_function_definitions(path: str) -> list[Functiondefinition]:
-    if not path or not os.path.exists(path):
-        raise FileNotFoundError(f"{path} is not found")
     try:
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding="utf-8") as f:
             data = json.load(f)
+    except OSError as e:
+        raise ValueError(f"Cannot read {path}: {e}")
     except json.JSONDecodeError as e:
-        print(f"{path}: {e}")
-        return []
+        raise(f"Invalid JSON in {path}: {e}")
+    if not isinstance(data, list):
+        raise ValueError(f"{path} must contain a JSON array")
     functions: list[Functiondefinition] = []
     for entry in data:
         try:
             functions.append(Functiondefinition(**entry))
         except ValidationError as e:
-            print(f"{entry}\n{e}")
-    print(f"Total of funtions: {len(functions)}")
-    for fn in functions:
-        print(f"{fn.name} -> {fn.parameters}")
+            print(f"{entry}: {e}")
     return functions
 
 
 def load_function_calling(path: str) -> list[Functioncalling]:
-    if not path or not os.path.exists(path):
-        raise FileNotFoundError(f"{path} is not found")
     try:
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding="utf-8") as f:
             data = json.load(f)
+    except OSError as e:
+        raise ValueError(f"Cannot read {path}: {e}")
     except json.JSONDecodeError as e:
-        print(f"{path}: {e}")
-        return []
+        raise ValueError(f"Invalid JSON in {path}: {e}")
+    if not isinstance(data, list):
+        raise ValueError(f"{path} must contain a JSON array")
     functions: list[Functioncalling] = []
     for entry in data:
         try:
             functions.append(Functioncalling(**entry))
         except ValidationError as e:
             print(f"{entry}\n{e}")
-    print(f"Total of prompts: {len(functions)}")
-    for fn in functions:
-        print(f"{fn.prompt}")
     return functions
 
 
 if __name__ == "__main__":
-    load_function_definitions("data/input/functions_definition.json")
+    print(load_function_definitions("data/input/functions_definition.json"))
     print()
-    load_function_calling("data/input/function_calling_tests.json")
+    print(load_function_calling("data/input/function_calling_tests.json"))

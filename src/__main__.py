@@ -2,17 +2,13 @@ from llm_sdk import Small_LLM_Model
 from typing import Any
 from enum import Enum, auto
 #from pydantic import Basemodel
-from .parse import (
-        load_function_calling,
-        load_function_definitions,
-        Functiondefinition
-        )
+from .parse import Functiondefinition, load_function_definitions
 
 
 model = Small_LLM_Model()
 
 
-def encode_strings(strings: list[str]) -> None:
+def encode_strings(strings: list[str]) -> list[list[int]]:
     """Encode strings"""
     encoded = []
     for string in strings:
@@ -20,8 +16,8 @@ def encode_strings(strings: list[str]) -> None:
     return (encoded)
 
 
-def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[str, str]) -> str:
-    result = []
+def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[str, str]) -> int | None:
+    result: list[int] = []
     base_prompt = f"""Get the best function name from this prompt:
 
 Prompt: {prompt}
@@ -43,18 +39,19 @@ Answer: """
 
         if result in encoded_funcs:
             break
-        if not candidat:
-            return
         i += 1
-    return result
+    return encoded_funcs.index(result)
 
 
-def choose_func_name(prompt: str, funcs: list[str]) -> str:
+def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functiondefinition | None:
     functions = {}
-    funcs_encode = encode_strings(funcs)
+    funcs_encode = encode_strings(f.name for f in funcs)
     for f in funcs:
-        functions[f["name"]] = f["description"]
-    return get_best_from(prompt, funcs_encode, functions)
+        functions[f.name] = f.description
+    index = get_best_from(prompt, funcs_encode, functions)
+    if index is None:
+        return None
+    return funcs[index]
 
 
 def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Functiondefinition | None:
@@ -106,19 +103,22 @@ def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Fun
 #        ...
 
 
-0
-if __name__ == "__main__":
-    function_name = {
-        "fn_add_numbers": "Add two numbers",
-        "fn_greet": "Say hello",
-        "fn_reverse_string": "Reverse a string",
-        "fn_get_square_root": "Calculate the square root of a number",
-        "fn_substitute_string_with_regex": "Transform a string using regex"
-    }
 
+if __name__ == "__main__":
+#    function_name = {
+#        "fn_add_numbers": "Add two numbers",
+#        "fn_greet": "Say hello",
+#        "fn_reverse_string": "Reverse a string",
+#        "fn_get_square_root": "Calculate the square root of a number",
+#        "fn_substitute_string_with_regex": "Transform a string using regex"
+#    }
+
+    funcs = load_function_definitions("data/input/functions_definition.json")
     prompt = "Greet shrek"
-    encoded_string = (encode_strings(function_name))
-    result = get_best_from(prompt, encoded_string, function_name)
+    encoded_string = (encode_strings([f.name for f in funcs]))
+    functions = {f.name: f.description for f in funcs}
+    result = get_best_from(prompt, encoded_string, functions)
     print(result)
-    print(model.decode(result))
+    if result is not None:
+        print(funcs[result].name)
     #print(find_function_by_name("fn_greet", load_function_definitions("data/input/functions_definition.json")))
