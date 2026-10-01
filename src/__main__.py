@@ -2,7 +2,7 @@ from llm_sdk import Small_LLM_Model
 from typing import Any
 from enum import Enum, auto
 #from pydantic import Basemodel
-from .parse import Functiondefinition, load_function_definitions
+from src import Functiondefinition, load_function_definitions
 
 
 model = Small_LLM_Model()
@@ -105,14 +105,6 @@ def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Fun
 
 
 if __name__ == "__main__":
-#    function_name = {
-#        "fn_add_numbers": "Add two numbers",
-#        "fn_greet": "Say hello",
-#        "fn_reverse_string": "Reverse a string",
-#        "fn_get_square_root": "Calculate the square root of a number",
-#        "fn_substitute_string_with_regex": "Transform a string using regex"
-#    }
-
     funcs = load_function_definitions("data/input/functions_definition.json")
     prompt = "Greet shrek"
     encoded_string = (encode_strings([f.name for f in funcs]))
@@ -121,4 +113,3 @@ if __name__ == "__main__":
     print(result)
     if result is not None:
         print(funcs[result].name)
-    #print(find_function_by_name("fn_greet", load_function_definitions("data/input/functions_definition.json")))

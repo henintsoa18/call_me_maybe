@@ -10,19 +10,19 @@ import os
 
 
 class Parameterstype(Enum):
-    Number = "number"
-    String = "string"
-    Integer = "integer"
-    Boolean = "boolean"
-    Null = "None"
+    NUMBER = "number"
+    STRING = "string"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
+    NONE = "None"
 
 
 class Returntype(Enum):
-    Number = "number"
-    String = "string"
-    Integer = "integer"
-    Boolean = "boolean"
-    Null = "None"
+    NUMBER = "number"
+    STRING = "string"
+    INTEGER = "integer"
+    BOOLEAN = "boolean"
+    NONE = "None"
 
 
 class ParameterSpec(BaseModel):
