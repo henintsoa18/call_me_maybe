@@ -27,13 +27,17 @@ def extract_param(
         model: Small_LLM_Model,
         context_ids: list[int],
         param_type: Parameterstype,
-        digit_ids: set[int],
-        dot_id: int,
-        minus_id: int,
-        quote_id: int,
         end_id: int,
         max_tokens: int = 30) -> tuple[Any, list[int]]:
 
+    digit_ids = {model.encode(d).tolist()[0][0] for d in "0123456789"}
+    dot_id = model.encode(".").tolist()[0][0]
+    minus_id = model.encode("-").tolist()[0][0]
+    quote_id = model.encode('"').tolist()[0][0]
+    comma_id = model.encode(",").tolist()[0][0]
+    brace_id = model.encode("}").tolist()[0][0]
+
+    digit_ids = model.encode
     generated: list[int] = []
     is_number = param_type in (Parameterstype.NUMBER, Parameterstype.INTEGER)
     has_dot = False
