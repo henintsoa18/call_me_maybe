@@ -1,5 +1,5 @@
 from llm_sdk import Small_LLM_Model
-from src import Parameterstype
+from src import Parameterstype, Functiondefinition
 from typing import Any
 
 
@@ -22,6 +22,63 @@ from typing import Any
 #            candidat.add(dot_id)
 #        if not has_digit and has_dot:
 #            candidat.add(end_id)
+
+
+model = Small_LLM_Model()
+
+
+def encode_strings(strings: list[str]) -> list[list[int]]:
+    """Encode strings"""
+    encoded = []
+    for string in strings:
+        encoded.append(model.encode(string).tolist()[0])
+    return (encoded)
+
+
+def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[str, str]) -> int | None:
+    result: list[int] = []
+    base_prompt = f"""Get the best function name from this prompt:
+
+Prompt: {prompt}
+
+Functions: {functions}
+
+Answer: """
+    encoded_string = model.encode(base_prompt).tolist()[0]
+    i = 0
+    while True:
+        candidat = {func[i] for func in encoded_funcs if len(func) > i and func[:i] == result}
+        if not candidat:
+            return None
+
+        logits = model.get_logits_from_input_ids(encoded_string + result)
+        max_value = max((logits[cand] for cand in candidat))
+        max_ids = logits.index(max_value)
+        result.append(max_ids)
+
+        if result in encoded_funcs:
+            break
+        i += 1
+    return encoded_funcs.index(result)
+
+
+def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functiondefinition | None:
+    functions = {}
+    funcs_encode = encode_strings(f.name for f in funcs)
+    for f in funcs:
+        functions[f.name] = f.description
+    index = get_best_from(prompt, funcs_encode, functions)
+    if index is None:
+        return None
+    return funcs[index]
+
+
+def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Functiondefinition | None:
+    for fun in functions:
+        if fun.name == name:
+            return fun
+    return None
+
 
 def extract_param(
         model: Small_LLM_Model,
@@ -73,3 +130,20 @@ def extract_param(
     text = model.decode(generated)
     value: Any = float(text) if is_number else text
     return (value, generated)
+
+
+def build_parameters(
+        model: Small_LLM_Model,
+        context_ids: list[int],
+        chosen_function: Functiondefinition) -> dict[str, Any]:
+    comma_id = model.encode(",").tolist()[0][0]
+    brace_id = model.encode("}").tolist()[0][0]
+    
+    brace_open_id = model.encode("{").tolist()[0][0]
+    context = context_ids + brace_open_id
+    
+    result: dict[str, Any] = {}
+    param_names = list(chosen_function.parameters.keys())
+
+    for index, name in enumerate(param_names):
+        is_last
