@@ -73,7 +73,7 @@ def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functionde
     return funcs[index]
 
 
-def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Functiondefinition | None:
+def find_function_by_name(name: str, functions: list[Functiondefinition])-> Functiondefinition | None:
     for fun in functions:
         if fun.name == name:
             return fun
@@ -146,4 +146,11 @@ def build_parameters(
     param_names = list(chosen_function.parameters.keys())
 
     for index, name in enumerate(param_names):
-        is_last
+        is_last = (index == len(param_names) - 1)
+        if is_last:
+            end_id = brace_id
+        else:
+            end_id = comma_id
+        name_encoded = model.encode("name").tolist()[0][0]
+        context = context + name_encoded
+        param_type = chosen_function.parameters[name].type
