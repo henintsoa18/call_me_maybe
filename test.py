@@ -1,32 +1,25 @@
-from llm_sdk import Small_LLM_Model
-from src.vocab import load_vocab, build_digit_token_ids
+from src.parse import load_function_definitions, load_function_calling
+from src.call_me_maybe import model, choose_func_name, build_parameters
 
-model = Small_LLM_Model()
-#vocab = load_vocab(model.get_path_to_vocab_file())
-##digit_ids = build_digit_token_ids(vocab)
-##
-##print(f"Sum of token in vocab : {len(vocab)}")
-##print(f"Sum of number token in vocab: {len(digit_ids)}")
-##
-##for txt in ["4", "40", "Ġ4", "Ġ40", "cat", "4.5", "-4", ".", "-", '"']:
-##    token_id = vocab.get(txt)
-##    if token_id is not None:
-##        print(f"{txt!r} -> id {token_id} -> is_digit ? {token_id in digit_ids}")
-##    else:
-##        print(f"{txt!r} is_notdigit")
-#
-#for number_text in ["4", "40", "4.5", "-4", "265", "0.5"]:
-#    ids = model.encode(number_text).tolist()[0]
-#    # on retrouve le texte de chaque token en cherchant dans vocab
-#    texts = []
-#    for token_id in ids:
-#        for t, i in vocab.items():
-#            if i == token_id:
-#                texts.append(t)
-#                break
-#    print(f"{number_text!r} -> ids {ids} -> textes {texts}")
+funcs = load_function_definitions("data/input/functions_definition.json")
+tests = load_function_calling("data/input/function_calling_tests.json")
 
-for d in "0123456789":
-    plain = model.encode(d).tolist()[0]
-    spaced = model.encode(" " + d).tolist()[0]
-    print(f"{d!r} -> plain={plain}, spaced={spaced}")
+for test in tests:
+    # Étape 1 : le LLM choisit la fonction (déjà validé)
+    chosen = choose_func_name(test.prompt, funcs)
+    if chosen is None:
+        print(f"{test.prompt!r} -> aucune fonction trouvée")
+        continue
+
+    # Étape 2 : contexte de départ pour les paramètres
+    text = (
+        "Extract the parameters of the function call.\n"
+        f"Function: {chosen.name} - {chosen.description}\n"
+        f"Prompt: {test.prompt}\n"
+        "Parameters: "
+    )
+    context_ids = model.encode(text).tolist()[0]
+
+    # Étape 3 : génération des paramètres
+    params = build_parameters(model, context_ids, chosen)
+    print(f"{test.prompt!r} -> {chosen.name} {params}")

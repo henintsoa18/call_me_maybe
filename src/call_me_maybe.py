@@ -3,27 +3,6 @@ from src import Parameterstype, Functiondefinition
 from typing import Any
 
 
-#def generate_number(
-#        model: Small_LLM_Model,
-#        context: list[int],
-#        digit_ids: set[int],
-#        dot_id: int,
-#        minus_id: int,
-#        end_id: int) -> tuple[float, list[int]]:
-#    generated: list[int] = []
-#    has_dot = False
-#    has_digit = False
-#
-#    while True:
-#        candidat = set(digit_ids)
-#        if not has_digit and not has_dot:
-#            candidat.add(minus_id)
-#        if has_digit and not has_dot:
-#            candidat.add(dot_id)
-#        if not has_digit and has_dot:
-#            candidat.add(end_id)
-
-
 model = Small_LLM_Model()
 
 
@@ -73,7 +52,7 @@ def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functionde
     return funcs[index]
 
 
-def find_function_by_name(name: str, functions: list[Functiondefinition])-> Functiondefinition | None:
+def find_function_by_name(name: str, functions: list[Functiondefinition]) -> Functiondefinition | None:
     for fun in functions:
         if fun.name == name:
             return fun
@@ -91,10 +70,8 @@ def extract_param(
     dot_id = model.encode(".").tolist()[0][0]
     minus_id = model.encode("-").tolist()[0][0]
     quote_id = model.encode('"').tolist()[0][0]
-    comma_id = model.encode(",").tolist()[0][0]
-    brace_id = model.encode("}").tolist()[0][0]
 
-    digit_ids = model.encode
+
     generated: list[int] = []
     is_number = param_type in (Parameterstype.NUMBER, Parameterstype.INTEGER)
     has_dot = False
@@ -138,10 +115,10 @@ def build_parameters(
         chosen_function: Functiondefinition) -> dict[str, Any]:
     comma_id = model.encode(",").tolist()[0][0]
     brace_id = model.encode("}").tolist()[0][0]
-    
-    brace_open_id = model.encode("{").tolist()[0][0]
+
+    brace_open_id = model.encode("{").tolist()[0]
     context = context_ids + brace_open_id
-    
+
     result: dict[str, Any] = {}
     param_names = list(chosen_function.parameters.keys())
 
@@ -151,6 +128,14 @@ def build_parameters(
             end_id = brace_id
         else:
             end_id = comma_id
-        name_encoded = model.encode("name").tolist()[0][0]
-        context = context + name_encoded
         param_type = chosen_function.parameters[name].type
+        is_number = param_type in (Parameterstype.NUMBER, Parameterstype.INTEGER)
+        if is_number:
+            text = f'"{name}": '
+        else:
+            text = f'"{name}": "'
+        context = context + model.encode(text).tolist()[0]
+        value, tokens = extract_param(model, context, param_type, end_id)
+        result[value] = tokens
+        context = context + tokens + [end_id]
+    return result
