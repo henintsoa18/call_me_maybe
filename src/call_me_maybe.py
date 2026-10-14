@@ -69,7 +69,6 @@ def extract_param(
     digit_ids = {model.encode(d).tolist()[0][0] for d in "0123456789"}
     dot_id = model.encode(".").tolist()[0][0]
     minus_id = model.encode("-").tolist()[0][0]
-    quote_id = model.encode('"').tolist()[0][0]
 
 
     generated: list[int] = []
@@ -102,7 +101,7 @@ def extract_param(
         else:
             next_token = logits.index(max(logits))
             generated.append(next_token)
-            if next_token == quote_id:
+            if '"' in model.decode(generated):
                 break
     text = model.decode(generated)
     if is_number:
@@ -123,6 +122,7 @@ def build_parameters(
         chosen_function: Functiondefinition) -> dict[str, Any]:
     comma_id = model.encode(",").tolist()[0][0]
     brace_id = model.encode("}").tolist()[0][0]
+    quote_ids = model.encode('"').tolist()[0]
 
     brace_open_id = model.encode("{").tolist()[0]
     context = context_ids + brace_open_id
@@ -145,5 +145,8 @@ def build_parameters(
         context = context + model.encode(text).tolist()[0]
         value, tokens = extract_param(model, context, param_type, end_id)
         result[name] = value
-        context = context + tokens + [end_id]
+        if is_number:
+            context = context + tokens +[end_id]
+        else:
+            context = context + tokens + quote_ids + [end_id]
     return result
