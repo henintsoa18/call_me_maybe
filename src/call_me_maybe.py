@@ -101,11 +101,19 @@ def extract_param(
 
         else:
             next_token = logits.index(max(logits))
+            generated.append(next_token)
             if next_token == quote_id:
                 break
-            generated.append(next_token)
     text = model.decode(generated)
-    value: Any = float(text) if is_number else text
+    if is_number:
+        value: Any = float(text)
+    else:
+        position = text.find('"')
+        if position != -1:
+            value = text[:position]
+        else:
+            value = text
+        generated = model.encode(value).tolist()[0]
     return (value, generated)
 
 
@@ -136,6 +144,6 @@ def build_parameters(
             text = f'"{name}": "'
         context = context + model.encode(text).tolist()[0]
         value, tokens = extract_param(model, context, param_type, end_id)
-        result[value] = tokens
+        result[name] = value
         context = context + tokens + [end_id]
     return result
