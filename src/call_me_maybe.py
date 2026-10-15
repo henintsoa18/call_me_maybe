@@ -150,3 +150,32 @@ def build_parameters(
         else:
             context = context + tokens + quote_ids + [end_id]
     return result
+
+
+def build_context(
+        model: Small_LLM_Model,
+        prompt: str,
+        chosen_function: Functiondefinition) -> list[int]:
+    params_text = ""
+    for name, spec in chosen_function.parameters.items():
+        params_text += f"{name} ({spec.type.value}), "
+    params_text = params_text.rstrip(", ")
+
+    example = '{"text": "hi", "times": 3.0}'
+    text = (
+        "Extract the parameters of a function call from the prompt.\n"
+        "Copy text values exactly as written in the prompt: same case, "
+        "same spelling, no added words.\n"
+        "Numbers are written as decimals. Regex parameters must be valid "
+        "regular expressions (for example [A-Z] matches capital "
+        "letters).\n\n"
+        "Function: fn_repeat_text - Repeat a text several times\n"
+        "Parameters: text (string), times (number)\n"
+        "Prompt: Repeat the word 'hi' 3 times\n"
+        f"Answer:\n{example}\n\n"
+        f"Function: {chosen_function.name} - {chosen_function.description}\n"
+        f"Parameters: {params_text}\n"
+        f"Prompt: {prompt}\n"
+        "Answer:\n"
+    )
+    return model.encode(text).tolist()[0]
