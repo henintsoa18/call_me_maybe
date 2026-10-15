@@ -1,5 +1,5 @@
 from llm_sdk import Small_LLM_Model
-from src import Parameterstype, Functiondefinition
+from parse import Parameterstype, Functiondefinition
 from typing import Any
 
 

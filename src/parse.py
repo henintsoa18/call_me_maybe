@@ -83,6 +83,6 @@ def load_function_calling(path: str) -> list[Functioncalling]:
 
 
 if __name__ == "__main__":
-    print(load_function_definitions("data/input/functions_definition.json"))
-    print()
-    print(load_function_calling("data/input/function_calling_tests.json"))
+   print(load_function_definitions("data/input/functions_definition.json"))
+   print()
+   print(load_function_calling("data/input/function_calling_tests.json"))
