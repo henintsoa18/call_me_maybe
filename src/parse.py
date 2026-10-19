@@ -1,12 +1,12 @@
 from pydantic import (
         BaseModel,
         Field,
-        ValidationError
+        ValidationError,
+        ConfigDict
     )
 from enum import Enum
 from typing import Any
 import json
-import os
 
 
 class Parameterstype(Enum):
@@ -42,6 +42,13 @@ class Functiondefinition(BaseModel):
 
 class Functioncalling(BaseModel):
     prompt: str = Field()
+
+
+class FunctionCallResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prompt: str
+    name: str
+    parameters: str
 
 
 def load_function_definitions(path: str) -> list[Functiondefinition]:
