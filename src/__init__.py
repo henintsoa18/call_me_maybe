@@ -1,8 +1,10 @@
 from .parse import (
     Functiondefinition,
+    FunctionCallResult,
+    Parameterstype,
     load_function_definitions,
     load_function_calling,
-    Parameterstype)
+    )
 from .call_me_maybe import (
     choose_func_name,
     build_parameters,
@@ -10,6 +12,7 @@ from .call_me_maybe import (
 
 __all__ = [
     "Functiondefinition",
+    "FunctionCallResult",
     "load_function_definitions",
     "load_function_calling",
     "Parameterstype",
