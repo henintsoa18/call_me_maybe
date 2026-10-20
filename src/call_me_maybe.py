@@ -1,5 +1,5 @@
 from llm_sdk import Small_LLM_Model
-from parse import Parameterstype, Functiondefinition
+from .parse import Parameterstype, Functiondefinition
 from typing import Any
 
 
@@ -169,6 +169,7 @@ def build_context(
         "Numbers are written as decimals. Regex parameters must be valid "
         "regular expressions (for example [A-Z] matches capital "
         "letters).\n\n"
+        "Don't reverse string if it's a request, take just the parameters"
         "Function: fn_repeat_text - Repeat a text several times\n"
         "Parameters: text (string), times (number)\n"
         "Prompt: Repeat the word 'hi' 3 times\n"

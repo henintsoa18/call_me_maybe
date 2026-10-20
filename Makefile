@@ -4,10 +4,10 @@ install:
 	uv sync
 
 run:
-	uv run python -m src
+	uv run python3 -m src
 
 debug:
-	uv run python -m pdb -m src
+	uv run python3 -m pdb -m src
 
 clean:
 	rm -rf __pycache__ .mypy_cache src/__pycache__ .pytest_cache

@@ -48,7 +48,7 @@ class FunctionCallResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
     prompt: str
     name: str
-    parameters: str
+    parameters: dict[str, Any]
 
 
 def load_function_definitions(path: str) -> list[Functiondefinition]:
