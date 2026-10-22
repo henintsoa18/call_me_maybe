@@ -60,7 +60,6 @@ def process_prompt(
         raise ValueError("No function found fofr this prompt")
     context_ids = build_context(model, prompt, chosen)
     parameters = build_parameters(model, context_ids, chosen)
-    #print(model.decode(context_ids))
     return FunctionCallResult(
         prompt=prompt,
         name=chosen.name,
@@ -96,7 +95,6 @@ def main() -> None:
     flags = take_flags()
     funcs = load_function_definitions(flags.functions_definition)
     tests = load_function_calling(flags.input)
-
     results: list[FunctionCallResult] = []
     for test in tests:
         if not test.prompt.strip():
@@ -110,7 +108,6 @@ def main() -> None:
         else:
             results.append(result)
             print(result.model_dump_json(indent=2))
-
     save_output(flags.output, results)
 
 
