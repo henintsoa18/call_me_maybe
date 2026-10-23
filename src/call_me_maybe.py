@@ -80,6 +80,31 @@ def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functionde
     return funcs[index]
 
 
+def extract_bool(
+        model: Small_LLM_Model,
+        context_ids: list[int]) -> tuple[bool, list[int]]:
+    """Generate a boolean (true or false), token by token.
+ 
+    Same idea as the function-name choice: only the tokens that keep
+    us on the path of "true" or "false" are allowed.
+    """
+    options = {"true": True, "false": False}
+    encoded = {word: model.encode(word).tolist()[0] for word in options}
+    generated: list[int] = []
+    while True:
+        candidat = set()
+        for ids in encoded.values():
+            size = len(generated)
+            if len(ids) > size and ids[:size] == generated:
+                candidat.add(ids[size])
+        logits = model.get_logits_from_input_ids(context_ids + generated)
+        max_value = max((logits[cand] for cand in candidat))
+        generated.append(logits.index(max_value))
+        for word, ids in encoded.items():
+            if ids == generated:
+                return options[word], generated
+
+
 def extract_param(
         model: Small_LLM_Model,
         context_ids: list[int],
@@ -92,22 +117,24 @@ def extract_param(
     Args:
         model: LLM used
         context_ids: everything that has already been written
-                    before this value, in tokens: the instructions, the prompt, and the start of the JSON
+                before this value, in tokens: the instructions, the prompt, and the start of the JSON
         param_type: the expected type
         end_it: the token that ends this value: , if there are any remaining parameters, }
                 for the last one.
         max_tokens: for security reasons, once 30 tokens have been used, the process stops,
-                    even if it is not finished
+                even if it is not finished
 
     Returns:
         A tuple (value, generated): the extracted value (for example 40.0
         or "shrek"), and its tokens, used as context for the next parameter.
     """
+    type_name = param_type.value
+    if type_name == "boolean":
+        return extract_bool(model, context_ids)
 
     digit_ids = {model.encode(d).tolist()[0][0] for d in "0123456789"}
     dot_id = model.encode(".").tolist()[0][0]
     minus_id = model.encode("-").tolist()[0][0]
-
 
     generated: list[int] = []
     is_number = param_type in (Parameterstype.NUMBER, Parameterstype.INTEGER)
@@ -158,6 +185,30 @@ def build_parameters(
         model: Small_LLM_Model,
         context_ids: list[int],
         chosen_function: Functiondefinition) -> dict[str, Any]:
+    """Generate the value of every parameter of the chosen function.
+
+    The JSON text (for example '{"a":2.0,"b":3.0}') is written step by
+    step in the context seen by the LLM: the fixed parts ('{', '"name":',
+    ',', '}') are written by this function, and each value is generated
+    by extract_param under constraints. Parameters are handled in the
+    order of the function definition.
+
+    Args:
+        model: LLM used
+        context_ids: token ids of the text already written before the
+            parameters (the instructions and the user prompt, built by
+            build_context). The opening brace is added here.
+        chosen_function: the function picked by choose_func_name; it
+            gives the ordered parameter names and their types.
+
+    Returns:
+        A dict mapping each parameter name to its extracted value: a
+        float for a number, a str for a string.
+
+    Raises:
+        ValueError: if a numeric value cannot be read (raised by
+            extract_param).
+    """
     comma_id = model.encode(",").tolist()[0][0]
     brace_id = model.encode("}").tolist()[0][0]
     quote_ids = model.encode('"').tolist()[0]
@@ -175,7 +226,11 @@ def build_parameters(
         else:
             end_id = comma_id
         param_type = chosen_function.parameters[name].type
-        is_number = param_type in (Parameterstype.NUMBER, Parameterstype.INTEGER)
+        is_number = param_type in (
+            Parameterstype.NUMBER,
+            Parameterstype.INTEGER,
+            Parameterstype.BOOLEAN
+            )
         if is_number:
             text = f'"{name}":'
         else:
@@ -194,11 +249,26 @@ def build_context(
         model: Small_LLM_Model,
         prompt: str,
         chosen_function: Functiondefinition) -> list[int]:
+    """The general prompt to guide the LLM in extracting the parameters 
+    
+    Args:
+        model: LLM used
+        prompt: the user prompt
+        chosen_functions: the function picked by choose_func_name; it
+            gives the ordered parameter names and their types.
+    
+    Returns:
+        The tokens from the prompt to guide the LLM
+        in extracting the parameters 
+    """
     text = (
-        "Extract the function call parameters from the prompt. Do not answer the prompt.\n"
-        "Copy text values verbatim: same case, same spelling, nothing added or removed.\n"
+        "Extract the function call parameters from the prompt."
+        " Do not answer the prompt.\n"
+        "Copy text values verbatim: same case, same spelling,"
+        " nothing added or removed.\n"
         "Function: fn_repeat_text - Repeat a text several times\n"
-        "For fn_substitute_string_with_regex, extract exactly the requested parameters, no more, no less."
+        "For fn_substitute_string_with_regex,"
+        " extract exactly the requested parameters, no more, no less."
         f"Function: {chosen_function.name}\n"
         f"Parameters: {chosen_function.parameters}\n"
         f"Prompt: {prompt}"
