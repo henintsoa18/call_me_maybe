@@ -21,31 +21,36 @@ def encode_strings(strings: list[str]) -> list[list[int]]:
     return (encoded)
 
 
-def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[str, str]) -> int | None:
-    """Selects the function that matches the prompt by letting the model decide token by token,
-    but only from among the tokens that lead to a valid function name.
+def get_best_from(prompt: str, encoded_funcs: list[list[int]],
+                  functions: dict[str, str]) -> int | None:
+    """Selects the function that matches the prompt by letting the model
+    decide token by token,but only from among the tokens that lead to a
+    valid function name.
 
     Args:
         prompt: the user prompt.
         encoded_funcs: list of encoded functions.
-        functions: used only to write the text shown to the model(name, description).
+        functions: used only to write the text shown to the model
+        (name, description).
 
     Return:
         The position of the chosen noun.
     """
     result: list[int] = []
-    base_prompt = ("Get the best function name from this prompt:\n"
-                    "Use fn_substitute_string_with_regex when the prompt start with replace, substitute or something like that\n"
-                    "Select the appropriate function for each prompt"
-                    f"Prompt: {prompt}\n"
-                    f"Functions: {functions}\n"
-                    "Answer:"
-                    )
+    base_prompt = (
+        "Get the best function name from this prompt:\n"
+        "Use fn_substitute_string_with_regex when the prompt"
+        "start with replace, substitute or something like that\n"
+        "Select the appropriate function for each prompt"
+        f"Prompt: {prompt}\n"
+        f"Functions: {functions}\n"
+        "Answer:")
 
     encoded_string = model.encode(base_prompt).tolist()[0]
     i = 0
     while True:
-        candidat = {func[i] for func in encoded_funcs if len(func) > i and func[:i] == result}
+        candidat = {func[i] for func in encoded_funcs
+                    if len(func) > i and func[:i] == result}
         if not candidat:
             return None
 
@@ -60,8 +65,11 @@ def get_best_from(prompt: str, encoded_funcs: list[list[int]], functions: dict[s
     return encoded_funcs.index(result)
 
 
-def choose_func_name(prompt: str, funcs: list[Functiondefinition]) -> Functiondefinition | None:
-    """Takes the name of the function after obtaining the result of `get_best_from`
+def choose_func_name(
+        prompt: str,
+        funcs: list[Functiondefinition]) -> Functiondefinition | None:
+    """Takes the name of the function after obtaining
+    the result of `get_best_from`
 
     Args:
         prompt: the user prompt.
@@ -84,7 +92,7 @@ def extract_bool(
         model: Small_LLM_Model,
         context_ids: list[int]) -> tuple[bool, list[int]]:
     """Generate a boolean (true or false), token by token.
- 
+
     Same idea as the function-name choice: only the tokens that keep
     us on the path of "true" or "false" are allowed.
     """
@@ -111,18 +119,20 @@ def extract_param(
         param_type: Parameterstype,
         end_id: int,
         max_tokens: int = 30) -> tuple[Any, list[int]]:
-    """Generates the value of a single parameter, token by token, whilst respecting its data type,
-    and stops automatically once the value is complete.
+    """Generates the value of a single parameter, token by token,
+    whilst respecting its data type, and stops automatically
+    once the value is complete.
 
     Args:
         model: LLM used
         context_ids: everything that has already been written
-                before this value, in tokens: the instructions, the prompt, and the start of the JSON
+                before this value, in tokens: the instructions,
+                the prompt, and the start of the JSON
         param_type: the expected type
-        end_it: the token that ends this value: , if there are any remaining parameters, }
-                for the last one.
-        max_tokens: for security reasons, once 30 tokens have been used, the process stops,
-                even if it is not finished
+        end_it: the token that ends this value: , if there are any remaining
+                parameters, } for the last one.
+        max_tokens: for security reasons, once 30 tokens have been used,
+                the process stops, even if it is not finished
 
     Returns:
         A tuple (value, generated): the extracted value (for example 40.0
@@ -239,7 +249,7 @@ def build_parameters(
         value, tokens = extract_param(model, context, param_type, end_id)
         result[name] = value
         if is_number:
-            context = context + tokens +[end_id]
+            context = context + tokens + [end_id]
         else:
             context = context + tokens + quote_ids + [end_id]
     return result
@@ -249,17 +259,17 @@ def build_context(
         model: Small_LLM_Model,
         prompt: str,
         chosen_function: Functiondefinition) -> list[int]:
-    """The general prompt to guide the LLM in extracting the parameters 
-    
+    """The general prompt to guide the LLM in extracting the parameters
+
     Args:
         model: LLM used
         prompt: the user prompt
         chosen_functions: the function picked by choose_func_name; it
             gives the ordered parameter names and their types.
-    
+
     Returns:
         The tokens from the prompt to guide the LLM
-        in extracting the parameters 
+        in extracting the parameters
     """
     text = (
         "Extract the function call parameters from the prompt."
@@ -274,4 +284,5 @@ def build_context(
         f"Prompt: {prompt}"
         "Answer:\n"
     )
-    return model.encode(text).tolist()[0]
+    result = model.encode(text).tolist()[0]
+    return result
