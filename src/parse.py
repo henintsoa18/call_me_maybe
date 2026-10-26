@@ -107,7 +107,7 @@ def load_function_definitions(path: str) -> list[Functiondefinition]:
     except OSError as e:
         raise ValueError(f"Cannot read {path}: {e}")
     except json.JSONDecodeError as e:
-        raise (f"Invalid JSON in {path}: {e}")
+        raise Exception(f"Invalid JSON in {path}: {e}")
     if not isinstance(data, list):
         raise ValueError(f"{path} must contain a JSON array")
     functions: list[Functiondefinition] = []

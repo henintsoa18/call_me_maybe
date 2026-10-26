@@ -19,5 +19,5 @@ lint:
 				--check-untyped-defs
 
 lint-strict:
-	uv run flkae8 .
+	uv run flake8 .
 	mypy . --strict

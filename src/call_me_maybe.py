@@ -1,6 +1,6 @@
 from llm_sdk import Small_LLM_Model
 from .parse import Parameterstype, Functiondefinition
-from typing import Any
+from typing import Any, cast
 
 
 model = Small_LLM_Model()
@@ -79,7 +79,7 @@ def choose_func_name(
         The chosen function name or nothing
     """
     functions = {}
-    funcs_encode = encode_strings(f.name for f in funcs)
+    funcs_encode = encode_strings([f.name for f in funcs])
     for f in funcs:
         functions[f.name] = f.description
     index = get_best_from(prompt, funcs_encode, functions)
@@ -95,6 +95,12 @@ def extract_bool(
 
     Same idea as the function-name choice: only the tokens that keep
     us on the path of "true" or "false" are allowed.
+
+    Args:
+        model:
+        context:
+
+    Returns:
     """
     options = {"true": True, "false": False}
     encoded = {word: model.encode(word).tolist()[0] for word in options}
@@ -284,5 +290,5 @@ def build_context(
         f"Prompt: {prompt}"
         "Answer:\n"
     )
-    result = model.encode(text).tolist()[0]
+    result = cast(list[int], model.encode(text).tolist()[0])
     return result

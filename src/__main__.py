@@ -108,7 +108,7 @@ def main() -> None:
         else:
             results.append(result)
             print(result.model_dump_json(indent=2))
-    save_output(flags.output, results)
+        save_output(flags.output, results)
 
 
 if __name__ == "__main__":
