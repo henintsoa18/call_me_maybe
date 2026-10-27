@@ -8,10 +8,12 @@ dependencies = [
     "llm>=0.35",
     "llm-sdk",
     "pydantic>=2.13.5",
+    "mypy>=2.4.0",
 ]
+
 [tool.uv.workspace]
 members = [
-    "llm_sdk"
+    "llm_sdk",
 ]
 
 [tool.uv.sources]
@@ -22,3 +24,15 @@ torch = { index = "pytorch-cpu" }
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "llm_sdk.*"
+follow_imports = "skip"

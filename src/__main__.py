@@ -98,8 +98,8 @@ def main() -> None:
     results: list[FunctionCallResult] = []
     for test in tests:
         if not test.prompt.strip():
-           print("The prompt is empty")
-           continue
+            print("The prompt is empty")
+            continue
         try:
             result = process_prompt(test.prompt, funcs)
         except ValueError as error:
