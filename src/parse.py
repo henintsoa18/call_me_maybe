@@ -55,6 +55,7 @@ class Functiondefinition(BaseModel):
         parameters: the name and the type of the parameters.
         returns: the type of the return value.
     """
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=2)
     description: str = Field()
     parameters: dict[str, ParameterSpec]
@@ -108,6 +109,8 @@ def load_function_definitions(path: str) -> list[Functiondefinition]:
         raise ValueError(f"Cannot read {path}: {e}")
     except json.JSONDecodeError as e:
         raise Exception(f"Invalid JSON in {path}: {e}")
+    except KeyboardInterrupt as e:
+        print (f"The program was interrupted: {e}")
     if not isinstance(data, list):
         raise ValueError(f"{path} must contain a JSON array")
     functions: list[Functiondefinition] = []
@@ -139,6 +142,8 @@ def load_function_calling(path: str) -> list[Functioncalling]:
         raise ValueError(f"Cannot read {path}: {e}")
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON in {path}: {e}")
+    except KeyboardInterrupt as e:
+        print (f"The program was interrupted: {e}")
     if not isinstance(data, list):
         raise ValueError(f"{path} must contain a JSON array")
     functions: list[Functioncalling] = []

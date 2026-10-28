@@ -10,10 +10,10 @@ def encode_strings(strings: list[str]) -> list[list[int]]:
     """Encode strings.
 
     Arg:
-        strings: list of strings to be encoded
+        strings: list of strings to be encoded.
 
     Returns:
-        list of tokens
+        list of tokens.
     """
     encoded = []
     for string in strings:
@@ -62,21 +62,21 @@ def get_best_from(prompt: str, encoded_funcs: list[list[int]],
         if result in encoded_funcs:
             break
         i += 1
-    return encoded_funcs.index(result)
+    return (encoded_funcs.index(result))
 
 
 def choose_func_name(
         prompt: str,
         funcs: list[Functiondefinition]) -> Functiondefinition | None:
     """Takes the name of the function after obtaining
-    the result of `get_best_from`
+    the result of `get_best_from`.
 
     Args:
         prompt: the user prompt.
         funcs: all the available funtion definitions.
 
     Returns:
-        The chosen function name or nothing
+        The chosen function name or nothing.
     """
     functions = {}
     funcs_encode = encode_strings([f.name for f in funcs])
@@ -85,7 +85,7 @@ def choose_func_name(
     index = get_best_from(prompt, funcs_encode, functions)
     if index is None:
         return None
-    return funcs[index]
+    return (funcs[index])
 
 
 def extract_bool(
@@ -97,10 +97,14 @@ def extract_bool(
     us on the path of "true" or "false" are allowed.
 
     Args:
-        model:
-        context:
+        model: LLM used.
+        context_ids: everything that has already been written
+                before this value, in tokens: the instructions,
+                the prompt, and the start of the JSON.
 
     Returns:
+        The extracted boolean (True or False) and the tokens
+        generated to produce it.
     """
     options = {"true": True, "false": False}
     encoded = {word: model.encode(word).tolist()[0] for word in options}
@@ -116,7 +120,7 @@ def extract_bool(
         generated.append(logits.index(max_value))
         for word, ids in encoded.items():
             if ids == generated:
-                return options[word], generated
+                return (options[word], generated)
 
 
 def extract_param(
@@ -126,19 +130,19 @@ def extract_param(
         end_id: int,
         max_tokens: int = 30) -> tuple[Any, list[int]]:
     """Generates the value of a single parameter, token by token,
-    whilst respecting its data type, and stops automatically
+    which list respecting its data type, and stops automatically
     once the value is complete.
 
     Args:
-        model: LLM used
+        model: LLM used.
         context_ids: everything that has already been written
                 before this value, in tokens: the instructions,
-                the prompt, and the start of the JSON
+                the prompt, and the start of the JSON.
         param_type: the expected type
         end_it: the token that ends this value: , if there are any remaining
                 parameters, } for the last one.
         max_tokens: for security reasons, once 30 tokens have been used,
-                the process stops, even if it is not finished
+                the process stops, even if it is not finished.
 
     Returns:
         A tuple (value, generated): the extracted value (for example 40.0
@@ -210,7 +214,7 @@ def build_parameters(
     order of the function definition.
 
     Args:
-        model: LLM used
+        model: LLM used.
         context_ids: token ids of the text already written before the
             parameters (the instructions and the user prompt, built by
             build_context). The opening brace is added here.
@@ -258,7 +262,7 @@ def build_parameters(
             context = context + tokens + [end_id]
         else:
             context = context + tokens + quote_ids + [end_id]
-    return result
+    return (result)
 
 
 def build_context(
@@ -268,8 +272,8 @@ def build_context(
     """The general prompt to guide the LLM in extracting the parameters
 
     Args:
-        model: LLM used
-        prompt: the user prompt
+        model: LLM used.
+        prompt: the user prompt.
         chosen_functions: the function picked by choose_func_name; it
             gives the ordered parameter names and their types.
 
@@ -291,4 +295,4 @@ def build_context(
         "Answer:\n"
     )
     result = cast(list[int], model.encode(text).tolist()[0])
-    return result
+    return (result)
