@@ -19,6 +19,6 @@ lint:
 				--check-untyped-defs --exclude llm_sdk
 
 lint-strict:
-	uv run flake8 .
-	mypy . --strict
+	uv run flake8 . --extend-exclude=llm_sdk
+	mypy . --strict --exclude llm_sdk
 
