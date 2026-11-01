@@ -55,10 +55,11 @@ def get_best_from(prompt: str, encoded_funcs: list[list[int]],
             return None
 
         logits = model.get_logits_from_input_ids(encoded_string + result)
-        max_value = max((logits[cand] for cand in candidat))
-        max_ids = logits.index(max_value)
-        result.append(max_ids)
-
+        best_id = next(iter(candidat))
+        for cand in candidat:
+            if logits [cand] > logits[best_id]:
+                best_id = cand
+        result.append(best_id)
         if result in encoded_funcs:
             break
         i += 1
@@ -172,8 +173,10 @@ def extract_param(
             if has_digit:
                 candidat.add(end_id)
 
-            max_value = max((logits[cand] for cand in candidat))
-            next_token = logits.index(max_value)
+            next_token = next(iter(candidat))
+            for cand in candidat:
+                if logits[cand] > logits[next_token]:
+                    next_token = cand
             if next_token == end_id:
                 break
             generated.append(next_token)
