@@ -7,10 +7,15 @@ from .parse import (
     load_function_definitions,
     load_function_calling,
     )
-from .call_me_maybe import (
-    choose_func_name,
-    build_parameters,
-    build_context)
+import sys
+try:
+    from .call_me_maybe import (
+        choose_func_name,
+        build_parameters,
+        build_context)
+except KeyboardInterrupt:
+    print("Program interrupted")
+    sys.exit()
 
 __all__ = [
     "Functiondefinition",
