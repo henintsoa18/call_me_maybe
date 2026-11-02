@@ -4,21 +4,22 @@ install:
 	uv sync
 
 run:
-	uv run python3 -m src
+	uv run python -m src
 
 debug:
-	uv run python3 -m pdb -m src
+	uv run python -m pdb -m src
 
 clean:
 	rm -rf __pycache__ .mypy_cache src/__pycache__ llm_sdk/llm_sdk/__pycache__ .pytest_cache
 
 lint:
-	uv run flake8 . --extend-exclude=llm_sdk
-	uv run mypy . --warn-return-any --warn-unused-ignores \
+	uv run flake8 src/
+# 	uv run flake8
+	uv run mypy src/ --warn-return-any --warn-unused-ignores \
 				--ignore-missing-imports --disallow-untyped-defs \
 				--check-untyped-defs --exclude llm_sdk
 
 lint-strict:
-	uv run flake8 . --extend-exclude=llm_sdk
-	mypy . --strict --exclude llm_sdk
+	uv run flake8 src/
+	uv run mypy --strict src/
 

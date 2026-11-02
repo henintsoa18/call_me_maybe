@@ -5,10 +5,10 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "llm>=0.35",
     "llm-sdk",
     "pydantic>=2.13.5",
     "mypy>=2.4.0",
+    "flake8-docstrings>=1.7.0",
 ]
 
 [tool.uv.workspace]

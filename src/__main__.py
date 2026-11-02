@@ -1,3 +1,5 @@
+"""Loads and run the program, save the results."""
+
 from .parse import (
     Functiondefinition,
     FunctionCallResult,

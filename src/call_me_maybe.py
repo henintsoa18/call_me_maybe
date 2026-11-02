@@ -1,3 +1,5 @@
+"""Generate name and parameters of functions by the prompts."""
+
 from llm_sdk import Small_LLM_Model
 from .parse import Parameterstype, Functiondefinition
 from typing import Any, cast
@@ -23,8 +25,8 @@ def encode_strings(strings: list[str]) -> list[list[int]]:
 
 def get_best_from(prompt: str, encoded_funcs: list[list[int]],
                   functions: dict[str, str]) -> int | None:
-    """Selects the function that matches the prompt by letting the model
-    decide token by token,but only from among the tokens that lead to a
+    """Select the function that matches the prompt by letting the model \
+    decide token by token,but only from among the tokens that lead to a \
     valid function name.
 
     Args:
@@ -57,9 +59,10 @@ def get_best_from(prompt: str, encoded_funcs: list[list[int]],
         logits = model.get_logits_from_input_ids(encoded_string + result)
         best_id = next(iter(candidat))
         for cand in candidat:
-            if logits [cand] > logits[best_id]:
+            if logits[cand] > logits[best_id]:
                 best_id = cand
         result.append(best_id)
+
         if result in encoded_funcs:
             break
         i += 1
@@ -68,8 +71,9 @@ def get_best_from(prompt: str, encoded_funcs: list[list[int]],
 
 def choose_func_name(
         prompt: str,
-        funcs: list[Functiondefinition]) -> Functiondefinition | None:
-    """Takes the name of the function after obtaining
+        funcs: list[Functiondefinition]
+        ) -> Functiondefinition | None:
+    """Take the name of the function after obtaining \
     the result of `get_best_from`.
 
     Args:
@@ -129,9 +133,10 @@ def extract_param(
         context_ids: list[int],
         param_type: Parameterstype,
         end_id: int,
-        max_tokens: int = 30) -> tuple[Any, list[int]]:
-    """Generates the value of a single parameter, token by token,
-    which list respecting its data type, and stops automatically
+        max_tokens: int = 30
+        ) -> tuple[Any, list[int]]:
+    """Generate the value of a single parameter, token by token,\
+    which list respecting its data type, and stops automatically \
     once the value is complete.
 
     Args:
@@ -271,8 +276,9 @@ def build_parameters(
 def build_context(
         model: Small_LLM_Model,
         prompt: str,
-        chosen_function: Functiondefinition) -> list[int]:
-    """The general prompt to guide the LLM in extracting the parameters
+        chosen_function: Functiondefinition
+        ) -> list[int]:
+    """General prompt to guide the LLM in extracting the parameters.
 
     Args:
         model: LLM used.

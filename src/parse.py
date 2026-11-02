@@ -1,3 +1,5 @@
+"""Parse the input files by following the Pydantic rules."""
+
 from pydantic import (
         BaseModel,
         Field,
@@ -11,6 +13,7 @@ import json
 
 class Parameterstype(Enum):
     """Allowed parameter types."""
+
     NUMBER = "number"
     STRING = "string"
     INTEGER = "integer"
@@ -19,7 +22,8 @@ class Parameterstype(Enum):
 
 
 class Returntype(Enum):
-    """Allowed return types"""
+    """Allowed return types."""
+
     NUMBER = "number"
     STRING = "string"
     INTEGER = "integer"
@@ -34,6 +38,7 @@ class ParameterSpec(BaseModel):
         type: the type of the parameter,
             among the allowed Parameterstype values.
     """
+
     type: Parameterstype
 
 
@@ -43,6 +48,7 @@ class ReturnSpec(BaseModel):
     Attributes:
         type: the return type, among the allowed Returntype values.
     """
+
     type: Returntype
 
 
@@ -55,6 +61,7 @@ class Functiondefinition(BaseModel):
         parameters: the name and the type of the parameters.
         returns: the type of the return value.
     """
+
     model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=2)
     description: str = Field()
@@ -68,6 +75,7 @@ class Functioncalling(BaseModel):
     Attributes:
         prompt: the user prompt to translate into a function call.
     """
+
     model_config = ConfigDict(extra="forbid")
     prompt: str = Field()
 
@@ -84,6 +92,7 @@ class FunctionCallResult(BaseModel):
         parameters: arguments extracted from the prompt,
             keyed by parameter name.
     """
+
     model_config = ConfigDict(extra="forbid")
     prompt: str
     name: str

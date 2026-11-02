@@ -1,3 +1,5 @@
+"""Convert the folder into an importable Python package."""
+
 from .parse import (
     Functiondefinition,
     FunctionCallResult,
